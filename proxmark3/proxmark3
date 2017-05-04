@@ -6,12 +6,17 @@ import os
 import grp
 import sys
 
+common_opts = ['docker', 'run', '--rm', '-ti', '--net=none',
+               '--security-opt=no-new-privileges']
+
 if len(sys.argv) <= 1:
-    os.execlp('docker', 'docker', 'run', '--rm', '-ti', 'proxmark3')
+    args = common_opts + ['proxmark3']
+    os.execvp(args[0], args)
     sys.exit(1)
 
 if sys.argv[1] in ['-h', '-m']:
-    os.execlp('docker', 'docker', 'run', '--rm', '-ti', 'proxmark3', sys.argv[1])
+    args = common_opts + ['proxmark3', sys.argv[1]]
+    os.execvp(args[0], args)
     sys.exit(1)
 
 try:
@@ -32,12 +37,9 @@ if dialout_gid != device_gid:
     sys.stderr.write(msg)
     sys.exit(1)
 
-args = [ 'docker', 'run',
-         '--device={}:/dev/ttyACM0'.format(sys.argv[1]),
+args  = common_opts
+args += ['--device={}:/dev/ttyACM0'.format(sys.argv[1]),
          '--group-add={}'.format(device_gid),
-         '--rm',
-         '-ti',
-         '--security-opt=no-new-privileges',
-         'proxmark3', '/dev/ttyACM0' ]
+         'proxmark3', '/dev/ttyACM0']
 
 os.execvp(args[0], args)
